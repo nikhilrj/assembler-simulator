@@ -6,7 +6,8 @@
 
 #define MAX_LINE_LENGTH 255
 
-const char* opCodeList[] = { "add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
+const char* opCodeList[] = { "add", "and", "brn", "brp", "brnp", "br", "brz", "brnz", "brzp", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
+char* SymbolList[MAX_LINE_LENGTH][2];
 
 enum
 {
@@ -135,6 +136,9 @@ int main(int argc, char* argv[]) {
 	char *prgName = NULL;
 	char *iFileName = NULL;
 	char *oFileName = NULL;
+	int symbolCounter = 0;
+	int orig;
+	int lineCounter = -1;
 
 	prgName = argv[0];
 	iFileName = argv[1];
@@ -143,9 +147,37 @@ int main(int argc, char* argv[]) {
 	char lLine[MAX_LINE_LENGTH + 1], *lLabel, *lOpcode, *lArg1,	*lArg2, *lArg3, *lArg4;
 
 	int lRet;
-
 	FILE * lInfile;
 
+	/*PASS ONE: GENERATE SYMBOL TABLE*/
+	lInfile = fopen(iFileName, "r");	/* open the input file */
+
+	do
+	{
+		lRet = readAndParse(lInfile, lLine, &lLabel, &lOpcode, &lArg1, &lArg2, &lArg3, &lArg4);
+		if (lRet != DONE && lRet != EMPTY_LINE)
+		{
+			if (strcmp(".orig", lOpcode) == 0)
+			{
+				orig = toNum(lArg1);
+			}
+			if (lLabel != NULL && strcmp(lLabel, "")!= 0)
+			{
+				SymbolList[symbolCounter][0] = (char*) malloc(MAX_LINE_LENGTH);//lLabel;
+				strcpy(SymbolList[symbolCounter][0], lLabel);
+				SymbolList[symbolCounter][1] = orig + lineCounter;
+
+				symbolCounter++;
+			}
+
+			lineCounter++;
+		}
+	} while (lRet != DONE);
+
+	fclose(iFileName);
+
+
+	/*PASS TWO: ASSEMBLE*/
 	lInfile = fopen(iFileName, "r");	/* open the input file */
 
 	do
@@ -156,6 +188,8 @@ int main(int argc, char* argv[]) {
 			printf("%s\n", lOpcode);
 		}
 	} while (lRet != DONE);
+
+	fclose(iFileName);
 
 	getchar();
 }
