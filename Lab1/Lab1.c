@@ -6,7 +6,7 @@
 
 #define MAX_LINE_LENGTH 255
 
-const char* opCodeList[] = { "ADD", "AND", "BR", "HALT", "JMP", "JSR", "JSRR", "LDB", "LDW", "LEA", "NOP", "NOT", "RET", "LSHF", "RSHFL", "RSHFA", "RTI", "STB", "STW", "TRAP", "XOR" };
+const char* opCodeList[] = { "add", "and", "br", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
 
 enum
 {
@@ -15,13 +15,15 @@ enum
 
 int isOpcode(char* opCode)
 {
-	return 1;
-	/*TODO: finish function*/
+	/*TODO: finish function, it's messing up on BRZ / BRNZP etc */
 	int i;
 	for (i = 0; i < sizeof(opCodeList) / sizeof(char*); i++)
 	{
-
+		if (strcmp(opCodeList[i], opCode) == 0)
+			return 1;
 	}
+
+	return -1;
 }
 
 int readAndParse(FILE * pInfile, char * pLine, char ** pLabel, char ** pOpcode, char ** pArg1, char ** pArg2, char ** pArg3, char ** pArg4)
@@ -151,7 +153,7 @@ int main(int argc, char* argv[]) {
 		lRet = readAndParse(lInfile, lLine, &lLabel, &lOpcode, &lArg1, &lArg2, &lArg3, &lArg4);
 		if (lRet != DONE && lRet != EMPTY_LINE)
 		{
-			printf("%d\n", lRet);
+			printf("%s\n", lOpcode);
 		}
 	} while (lRet != DONE);
 
