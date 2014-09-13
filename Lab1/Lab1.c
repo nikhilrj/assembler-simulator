@@ -191,7 +191,7 @@ int and(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 
 	}
 }
-int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
+int branch(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4, int cc)
 {
 	if (strcmp(lArg2, "") != 0)
 		exit(4); /*Wrong number of operands*/
@@ -204,44 +204,47 @@ int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 			int dist = (SymbolAddresses[i] - (pc + 1));
 			if (dist > 255 || dist < -256)
 				exit(4); /*Label is too far away!*/
-			return (1 << 11) + (dist & 0x1FF);
+			return (cc << 9) + (dist & 0x1FF);
 		}
 	}
+
+	if (lArg1[0] != '#' || lArg1 != 'x')
+		exit(1); /*Label not found and is not a number, must be invalid label*/
 
 	/*CASE 2: IT IS A NUMBER*/
 	int pcOffset = toNum(lArg1);
 	if (pcOffset > 255 || pcOffset < -256)
 		exit(3); /*Invalid Constant*/
-	return (1 << 11) + (pcOffset & 0x1FF);
+	return (cc << 9) + (pcOffset & 0x1FF);
 
+}
+int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
+{
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 4);
 }
 int brp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 1);
 }
 int brnp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 5);
 }
 int br(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 7);
 }
 int brz(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 2);
 }
 int brnz(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 6);
 }
 int brzp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
-}
-int halt(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
-{
-	return 0;
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 3);
 }
 int jmp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 { 
@@ -255,11 +258,39 @@ int jmp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int jsr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg2, "") != 0)
+		exit(4); /*Wrong number of operands*/
+
+	/*CASE 1: IT IS A LABEL*/
+	for (int i = 0; i < symbolCounter; i++)
+	{
+		if (strcmp(SymbolList[i], lArg1) == 0)
+		{
+			int dist = (SymbolAddresses[i] - (pc + 1));
+			if (dist > 1023 || dist < -1024)
+				exit(4); /*Label is too far away!*/
+			return (9 << 11) + (dist & 0x7FF);
+		}
+	}
+
+	if (lArg1[0] != '#' || lArg1 != 'x')
+		exit(1); /*Label not found and is not a number, must be invalid label*/
+
+	/*CASE 2: IT IS A NUMBER*/
+	int pcOffset = toNum(lArg1);
+	if (pcOffset > 1023 || pcOffset < -1024)
+		exit(3); /*Invalid Constant*/
+	return (9 << 11) + (pcOffset & 0x7FF);
 }
 int jsrr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg2, "") != 0)
+		exit(4); /*Wrong number of operands*/
+
+	if (isRegister(lArg1) != 1)
+		exit(4); /*Invalid register*/
+
+	return (4 << 12) + (decodeRegister(lArg1) << 6);
 }
 int ldb(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -285,11 +316,38 @@ int ldw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg2, "") == 0 || strcmp(lArg3, "") != 0)
+		exit(4); /*Wrong number of operands*/
+
+	if (isRegister(lArg1) != 1)
+		exit(4); /*Invalid register*/
+
+	int reg = decodeRegister(lArg1);
+
+	/*CASE 1: IT IS A LABEL*/
+	for (int i = 0; i < symbolCounter; i++)
+	{
+		if (strcmp(SymbolList[i], lArg2) == 0)
+		{
+			int dist = (SymbolAddresses[i] - (pc + 1));
+			if (dist > 255 || dist < -256)
+				exit(4); /*Label is too far away!*/
+			return (14 << 12) + (reg << 9) + (dist & 0x1FF);
+		}
+	}
+
+	if (lArg2[0] != '#' || lArg2 != 'x')
+		exit(1); /*Label not found and is not a number, must be invalid label*/
+
+	/*CASE 2: IT IS A NUMBER*/
+	int pcOffset = toNum(lArg2);
+	if (pcOffset > 255 || pcOffset < -256)
+		exit(3); /*Invalid Constant*/
+	return (14 << 12) + (reg << 9) + (pcOffset & 0x1FF);
 }
 int nop(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return 0; /*This is correct :)*/
 }
 int not(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -370,11 +428,34 @@ int stw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int trap(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	int num = toNum(lArg1);
+	if (num < 0 || num > 127)
+		exit(3); /*Invalid constants */
+	return (0xF << 12) + (num & 0xFF);
+}
+int halt(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
+{
+	return trap(pc, "x25", lArg2, lArg3, lArg4);
 }
 int xor(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*Incorrect number of instructions!*/
+
+	if (isRegister(lArg1) != 1 || isRegister(lArg2) != 1)
+		exit(4); /*Invalid register input*/
+
+	if (isRegister(lArg3) == 1)
+		return (9 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + decodeRegister(lArg3);
+	else
+	{
+		int imm5 = toNum(lArg3);
+		if (imm5 > 15 || imm5 < -16)
+			exit(3); /*Invalid immediate */
+		else
+			return (9 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 5) + (imm5 & 0x1f);
+
+	}
 }
 
 int main(int argc, char* argv[]) {
