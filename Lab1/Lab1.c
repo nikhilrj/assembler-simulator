@@ -133,27 +133,75 @@ int toNum(char * pStr)
 	}
 }
 
+int isRegister(char* reg)
+{
+	if(reg[0]=='r' && (reg[1] => '0' && reg[1] <= '7') && strlen(reg) == 2)
+		return 1;
+	return -1;
+}
+
 int decodeRegister(char* reg)
 {
 	/*decodes R7 -> int(7), etc*/
-	return reg[1] - '0';
+	if(isRegister(reg) == 1)
+		return reg[1] - '0';
+	else
+		exit(4);
 }
 
 int add(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if(strcmp(lArg3, "") == 0 || strcmp(lArg4, "")!=0)
+		exit(4); /*Incorrect number of instructions!*/
+
+	if(isRegister(lArg3)
+		return 0b0001 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + decodeRegister(lArg3);
+	else
+	{
+		int imm5 = toNum(lArg(3));
+		if(imm5 > 15 || imm5 < -16)
+			exit(3); /*Invalid immediate */
+		else
+			return 0b0001 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + 1 << 5 + imm5;
+
+	}
 }
 int and(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if(strcmp(lArg3, "") == 0 || strcmp(lArg4, "")!=0)
+		exit(4); /*Incorrect number of instructions!*/
+
+	if(isRegister(lArg3)
+		return 0b0101 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + decodeRegister(lArg3);
+	else
+	{
+		int imm5 = toNum(lArg(3));
+		if(imm5 > 15 || imm5 < -16)
+			exit(3); /*Invalid immediate */
+		else
+			return 0b0101 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + 1 << 5 + imm5;
+
+	}
 }
 int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if(strcmp(lArg2, "") != 0)
+		exit(4); /*Wrong number of operands*/
+
+	int pcOffset = toNum(lArg1);
+	if(pcOffset > 255 || pcOffset < -256)
+		exit(3); /*Invalid Constant*/
+	return 1 << 11 + pcOffset;
 }
 int brp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if(strcmp(lArg2, "") != 0)
+		exit(4); /*Wrong number of operands*/
+
+	int pcOffset = toNum(lArg1);
+	if(pcOffset > 255 || pcOffset < -256)
+		exit(3); /*Invalid Constant*/
+	return 1 << 9 + pcOffset;
 }
 int brnp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -205,7 +253,7 @@ int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int nop(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	return 0; /* This is actually done */
 }
 int not(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
