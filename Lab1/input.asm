@@ -1,10 +1,12 @@
-	.ORIG x3000   	
-	LEA R0, TEN		;This instruction will be loaded into memory location x3000
-	LDW R1, R0, #0
-START	ADD R1, R1, #-1
-	BRZ DONE
-	BR START
-				;blank line
-DONE	TRAP x25		;The last executable instruction
-TEN	.FILL x000A		;This is 10 in 2's comp, hexadecimal
-	.END			;The pseudo-op, delimiting the source program
+    .ORIG #4096
+A    LEA R1, Y
+    LDW R1, R1, #0
+    LDW R1, R1, #0
+    ADD R1, R1, R1
+    ADD R1, R1, x-10    ;x-10 is the negative of x10
+    BRN A
+    HALT
+Y    .FILL #263
+    .FILL #13
+    .FILL #6
+    .END

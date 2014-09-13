@@ -135,7 +135,7 @@ int toNum(char * pStr)
 
 int isRegister(char* reg)
 {
-	if(reg[0]=='r' && (reg[1] => '0' && reg[1] <= '7') && strlen(reg) == 2)
+	if (reg[0] == 'r' && (reg[1] >= '0' && reg[1] <= '7') && strlen(reg) == 2)
 		return 1;
 	return -1;
 }
@@ -143,65 +143,51 @@ int isRegister(char* reg)
 int decodeRegister(char* reg)
 {
 	/*decodes R7 -> int(7), etc*/
-	if(isRegister(reg) == 1)
-		return reg[1] - '0';
-	else
-		exit(4);
+	return reg[1] - '0';
+
 }
 
 int add(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	if(strcmp(lArg3, "") == 0 || strcmp(lArg4, "")!=0)
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
 		exit(4); /*Incorrect number of instructions!*/
 
-	if(isRegister(lArg3)
-		return 0b0001 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + decodeRegister(lArg3);
+	if (isRegister(lArg3) == 1)
+		return (1 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + decodeRegister(lArg3);
 	else
 	{
-		int imm5 = toNum(lArg(3));
-		if(imm5 > 15 || imm5 < -16)
+		int imm5 = toNum(lArg3);
+		if (imm5 > 15 || imm5 < -16)
 			exit(3); /*Invalid immediate */
 		else
-			return 0b0001 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + 1 << 5 + imm5;
+			return (1 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 5) + (imm5&0x1f);
 
 	}
 }
 int and(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	if(strcmp(lArg3, "") == 0 || strcmp(lArg4, "")!=0)
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
 		exit(4); /*Incorrect number of instructions!*/
 
-	if(isRegister(lArg3)
-		return 0b0101 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + decodeRegister(lArg3);
+	if (isRegister(lArg3) == 1)
+		return (5 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + decodeRegister(lArg3);
 	else
 	{
-		int imm5 = toNum(lArg(3));
-		if(imm5 > 15 || imm5 < -16)
+		int imm5 = toNum(lArg3);
+		if (imm5 > 15 || imm5 < -16)
 			exit(3); /*Invalid immediate */
 		else
-			return 0b0101 << 12 + decodeRegister(lArg1) << 9 + decodeRegister(lArg2) << 6 + 1 << 5 + imm5;
+			return (5 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 5) + (imm5 & 0x1f);
 
 	}
 }
 int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	if(strcmp(lArg2, "") != 0)
-		exit(4); /*Wrong number of operands*/
-
-	int pcOffset = toNum(lArg1);
-	if(pcOffset > 255 || pcOffset < -256)
-		exit(3); /*Invalid Constant*/
-	return 1 << 11 + pcOffset;
+	return 0;
 }
 int brp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	if(strcmp(lArg2, "") != 0)
-		exit(4); /*Wrong number of operands*/
-
-	int pcOffset = toNum(lArg1);
-	if(pcOffset > 255 || pcOffset < -256)
-		exit(3); /*Invalid Constant*/
-	return 1 << 9 + pcOffset;
+	return 0;
 }
 int brnp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -253,7 +239,7 @@ int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int nop(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0; /* This is actually done */
+	return 0;
 }
 int not(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -308,7 +294,7 @@ int main(int argc, char* argv[]) {
 	iFileName = argv[1];
 	oFileName = argv[2];
 
-	char lLine[MAX_LINE_LENGTH + 1], *lLabel, *lOpcode, *lArg1,	*lArg2, *lArg3, *lArg4;
+	char lLine[MAX_LINE_LENGTH + 1], *lLabel, *lOpcode, *lArg1, *lArg2, *lArg3, *lArg4;
 	/* lLabel[i] */
 	/* *(lLabel+i)*/
 	int lRet;
@@ -322,18 +308,20 @@ int main(int argc, char* argv[]) {
 		lRet = readAndParse(lInfile, lLine, &lLabel, &lOpcode, &lArg1, &lArg2, &lArg3, &lArg4);
 		if (lRet != DONE && lRet != EMPTY_LINE)
 		{
+			if (strcmp(lOpcode, ".end") == 0) break; 
+
 			if (strcmp(".orig", lOpcode) == 0)
 			{
 				orig = toNum(lArg1);
 			}
-			if (lLabel != NULL && strcmp(lLabel, "")!= 0)
+			if (lLabel != NULL && strcmp(lLabel, "") != 0)
 			{
 				if (strcmp(lLabel, "getc") == 0 || strcmp(lLabel, "in") == 0 || strcmp(lLabel, "out") == 0 || strcmp(lLabel, "puts") == 0 || lLabel[0] == 'x')
 					exit(4); /*exit because the label is not allowed to be getc,in,out, or puts*/
 
 				if (lLabel[0] >= '0' && lLabel[0] <= '9')
 					exit(4);
-				
+
 				for (int j = 0; j<strlen(lLabel); j++)
 				{
 					if (isalnum(lLabel[j]) == 0)
@@ -376,8 +364,10 @@ int main(int argc, char* argv[]) {
 		lRet = readAndParse(lInfile, lLine, &lLabel, &lOpcode, &lArg1, &lArg2, &lArg3, &lArg4);
 		if (lRet != DONE && lRet != EMPTY_LINE)
 		{
+			if (strcmp(lOpcode, ".orig") == 0) result = orig;
+			if (strcmp(lOpcode, ".end") == 0) break; 
 
-			printf("%s\n", lOpcode);
+			if (strcmp(lOpcode, ".fill") == 0) { if (strcmp(lArg2, "") != 0) exit(4); result = toNum(lArg1); } else
 			if (strcmp(lOpcode, "add") == 0) { result = add(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 			else
 				if (strcmp(lOpcode, "and") == 0) { result = and(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
@@ -431,12 +421,11 @@ int main(int argc, char* argv[]) {
 																												if (strcmp(lOpcode, "trap") == 0) { result = trap(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																												else
 																													if (strcmp(lOpcode, "xor") == 0) { result = xor(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
-			
+
+			printf("%s %s %s %s %s \t\t %#04x \t %#04x\n", lOpcode, lArg1, lArg2, lArg3, lArg4, lineCounter + orig, result);
 			lineCounter++;
 		}
 	} while (lRet != DONE);
-
-	fclose(iFileName);
-
+	
 	getchar();
 }
