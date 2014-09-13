@@ -1,29 +1,29 @@
-﻿Build started 9/13/2014 2:47:15 AM.
+﻿Build started 9/13/2014 3:06:19 AM.
      1>Project "C:\Users\Nikhil\Documents\GitHub\EE460N\Lab1\Lab1.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          D:\VS\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Za /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt Lab1.c
          Lab1.c
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(37): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(48): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(38): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(49): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(204) : see declaration of 'strtok'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(53): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(54): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(204) : see declaration of 'strtok'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(57): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(58): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(204) : see declaration of 'strtok'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(61): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(62): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(204) : see declaration of 'strtok'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(63): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(64): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(204) : see declaration of 'strtok'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(65): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(66): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(204) : see declaration of 'strtok'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(33): warning C4101: 'lRet' : unreferenced local variable
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(304): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(34): warning C4101: 'lRet' : unreferenced local variable
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(317): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\stdio.h(211) : see declaration of 'fopen'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(325): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(341): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(338): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(354): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\string.h(112) : see declaration of 'strcpy'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(355): warning C4133: 'function' : incompatible types - from 'char *' to 'FILE *'
-     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(360): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(368): warning C4133: 'function' : incompatible types - from 'char *' to 'FILE *'
+     1>c:\users\nikhil\documents\github\ee460n\lab1\lab1.c(373): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\vs\vc\include\stdio.h(211) : see declaration of 'fopen'
        Link:
          D:\VS\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Nikhil\Documents\GitHub\EE460N\Lab1\Debug\Lab1.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Nikhil\Documents\GitHub\EE460N\Lab1\Debug\Lab1.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Nikhil\Documents\GitHub\EE460N\Lab1\Debug\Lab1.lib" /MACHINE:X86 Debug\Lab1.obj

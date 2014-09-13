@@ -9,6 +9,7 @@
 const char* opCodeList[] = { "add", "and", "brn", "brp", "brnp", "br", "brz", "brnz", "brzp", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
 char* SymbolList[MAX_LINE_LENGTH];
 int SymbolAddresses[MAX_LINE_LENGTH];
+int symbolCounter = 0;
 
 enum
 {
@@ -183,7 +184,20 @@ int and(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg2, "") != 0)
+		exit(4); /*Wrong number of operands*/
+	
+	/*CASE 1: IT IS A LABEL*/
+	for (int i = 0; i < symbolCounter; i++)
+	{
+		if (strcmp(SymbolList[i], lArg1) == 0)
+		{
+			return (1 << 11) + ((SymbolAddresses[i] - (pc+1)) & 0x1FF);
+		}
+	}
+
+	/*CASE 2: IT IS A NUMBER*/
+	return (1 << 11) + toNum(lArg1);
 }
 int brp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -286,7 +300,6 @@ int main(int argc, char* argv[]) {
 	char *prgName = NULL;
 	char *iFileName = NULL;
 	char *oFileName = NULL;
-	int symbolCounter = 0;
 	int orig;
 	int lineCounter = -1;
 
