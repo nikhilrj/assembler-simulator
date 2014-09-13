@@ -4,6 +4,9 @@
 #include <ctype.h> /* Library for useful character operations */
 #include <limits.h> /* Library for definitions of common variable type characteristics */
 
+/* strcmp returns -1 if it is before alphabetically, 0 if it is equal, 1 if it is after*/
+
+
 #define MAX_LINE_LENGTH 255
 
 const char* opCodeList[] = { "add", "and", "brn", "brp", "brnp", "br", "brz", "brnz", "brzp", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
@@ -31,7 +34,7 @@ int isOpcode(char* opCode)
 
 int readAndParse(FILE * pInfile, char * pLine, char ** pLabel, char ** pOpcode, char ** pArg1, char ** pArg2, char ** pArg3, char ** pArg4)
 {
-	char * lRet, *lPtr;
+	char *lRet, *lPtr;
 	int i;
 	if (!fgets(pLine, MAX_LINE_LENGTH, pInfile))
 		return(DONE);
@@ -260,11 +263,25 @@ int jsrr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int ldb(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int boffset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (boffset6 > ((2 << 5) - 1) || boffset6 < ((2 << 5) * -1))
+		exit(3); /*too large for 4 bits*/
+	return (2 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (boffset6 & 0x3f);
 }
 int ldw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int boffset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (boffset6 > ((2 << 5) - 1) || boffset6 < ((2 << 5) * -1))
+		exit(3); /*too large for 4 bits*/
+	return (6 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (boffset6 & 0x3f);
 }
 int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -276,7 +293,11 @@ int nop(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int not(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg2, "") == 0 || strcmp(lArg3, "") != 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	return (9 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (0x3f);
 }
 int ret(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -288,27 +309,64 @@ int ret(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int lshf(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int amount4 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (amount4 > 7 || amount4 < -8)
+		exit(3); /*too large for 4 bits*/
+	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (amount4&0xf);
 }
 int rshfl(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int amount4 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (amount4 > 7 || amount4 < -8)
+		exit(3); /*too large for 4 bits*/
+	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 4) + (amount4&0xf);
 }
 int rshfa(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int amount4 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (amount4 > 7 || amount4 < -8)
+		exit(3); /*too large for 4 bits*/
+	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 5) + (1 << 4) + (amount4&0xf);
 }
 int rti(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg1, "") != 0)
+		exit(4); /*wrong number of operands*/
+	return (8 << 12);
 }
 int stb(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int boffset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (boffset6 > ((2 << 5) - 1) || boffset6 < ((2 << 5) * -1))
+		exit(3); /*too large for 4 bits*/
+	return (3 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (boffset6&0x3f);
 }
 int stw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
+		exit(4); /*wrong number of operands*/
+	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
+		exit(4); /*invalid register or unexpected operand*/
+	int offset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
+	if (offset6 > ((2 << 5) - 1) || offset6 < ((2 << 5) * -1))
+		exit(3); /*too large for 4 bits*/
+	return (7 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (offset6 & 0x3f);
 }
 int trap(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -400,68 +458,83 @@ int main(int argc, char* argv[]) {
 		lRet = readAndParse(lInfile, lLine, &lLabel, &lOpcode, &lArg1, &lArg2, &lArg3, &lArg4);
 		if (lRet != DONE && lRet != EMPTY_LINE)
 		{
-			if (strcmp(lOpcode, ".orig") == 0) result = orig;
-			if (strcmp(lOpcode, ".end") == 0) break; 
-
-			if (strcmp(lOpcode, ".fill") == 0) { if (strcmp(lArg2, "") != 0) exit(4); result = toNum(lArg1); } else
-			if (strcmp(lOpcode, "add") == 0) { result = add(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+			if (lOpcode[0] == '.')
+			{
+				if (strcmp(lOpcode, ".orig") == 0)
+				{
+					if (orig % 4 != 0)
+						exit(3); /* address is not word-aligned */
+					result = orig;
+				}
+				if (strcmp(lOpcode, ".end") == 0) break;
+				if (strcmp(lOpcode, ".fill") == 0)
+				{
+					if (strcmp(lArg1, "") == 0 || strcmp(lArg2, "") != 0)
+						exit(4);
+					result = toNum(lArg1);
+				}
+			}
 			else
-				if (strcmp(lOpcode, "and") == 0) { result = and(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+				if (strcmp(lOpcode, "add") == 0) { result = add(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 				else
-					if (strcmp(lOpcode, "brn") == 0) { result = brn(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+					if (strcmp(lOpcode, "and") == 0) { result = and(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 					else
-						if (strcmp(lOpcode, "brp") == 0) { result = brp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+						if (strcmp(lOpcode, "brn") == 0) { result = brn(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 						else
-							if (strcmp(lOpcode, "brnp") == 0) { result = brnp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+							if (strcmp(lOpcode, "brp") == 0) { result = brp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 							else
-								if (strcmp(lOpcode, "br") == 0) { result = br(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+								if (strcmp(lOpcode, "brnp") == 0) { result = brnp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 								else
-									if (strcmp(lOpcode, "brz") == 0) { result = brz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+									if (strcmp(lOpcode, "br") == 0) { result = br(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 									else
-										if (strcmp(lOpcode, "brnz") == 0) { result = brnz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+										if (strcmp(lOpcode, "brz") == 0) { result = brz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 										else
-											if (strcmp(lOpcode, "brzp") == 0) { result = brzp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+											if (strcmp(lOpcode, "brnz") == 0) { result = brnz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 											else
-												if (strcmp(lOpcode, "halt") == 0) { result = halt(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+												if (strcmp(lOpcode, "brzp") == 0) { result = brzp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 												else
-													if (strcmp(lOpcode, "jmp") == 0) { result = jmp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+													if (strcmp(lOpcode, "halt") == 0) { result = halt(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 													else
-														if (strcmp(lOpcode, "jsr") == 0) { result = jsr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+														if (strcmp(lOpcode, "jmp") == 0) { result = jmp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 														else
-															if (strcmp(lOpcode, "jsrr") == 0) { result = jsrr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+															if (strcmp(lOpcode, "jsr") == 0) { result = jsr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 															else
-																if (strcmp(lOpcode, "ldb") == 0) { result = ldb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																if (strcmp(lOpcode, "jsrr") == 0) { result = jsrr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																else
-																	if (strcmp(lOpcode, "ldw") == 0) { result = ldw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																	if (strcmp(lOpcode, "ldb") == 0) { result = ldb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																	else
-																		if (strcmp(lOpcode, "lea") == 0) { result = lea(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																		if (strcmp(lOpcode, "ldw") == 0) { result = ldw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																		else
-																			if (strcmp(lOpcode, "nop") == 0) { result = nop(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																			if (strcmp(lOpcode, "lea") == 0) { result = lea(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																			else
-																				if (strcmp(lOpcode, "not") == 0) { result = not(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																				if (strcmp(lOpcode, "nop") == 0) { result = nop(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																				else
-																					if (strcmp(lOpcode, "ret") == 0) { result = ret(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																					if (strcmp(lOpcode, "not") == 0) { result = not(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																					else
-																						if (strcmp(lOpcode, "lshf") == 0) { result = lshf(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																						if (strcmp(lOpcode, "ret") == 0) { result = ret(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																						else
-																							if (strcmp(lOpcode, "rshfl") == 0) { result = rshfl(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																							if (strcmp(lOpcode, "lshf") == 0) { result = lshf(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																							else
-																								if (strcmp(lOpcode, "rshfa") == 0) { result = rshfa(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																								if (strcmp(lOpcode, "rshfl") == 0) { result = rshfl(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																								else
-																									if (strcmp(lOpcode, "rti") == 0) { result = rti(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																									if (strcmp(lOpcode, "rshfa") == 0) { result = rshfa(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																									else
-																										if (strcmp(lOpcode, "stb") == 0) { result = stb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																										if (strcmp(lOpcode, "rti") == 0) { result = rti(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																										else
-																											if (strcmp(lOpcode, "stw") == 0) { result = stw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																											if (strcmp(lOpcode, "stb") == 0) { result = stb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																											else
-																												if (strcmp(lOpcode, "trap") == 0) { result = trap(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																												if (strcmp(lOpcode, "stw") == 0) { result = stw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																												else
-																													if (strcmp(lOpcode, "xor") == 0) { result = xor(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																													if (strcmp(lOpcode, "trap") == 0) { result = trap(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																													else
+																														if (strcmp(lOpcode, "xor") == 0) { result = xor(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																														else { exit(2); /*congrats! you made it all the way here*/}
 
 			printf("%s %s %s %s %s \t\t %#04x \t %#04x\n", lOpcode, lArg1, lArg2, lArg3, lArg4, lineCounter + orig, result);
 			lineCounter++;
 		}
 	} while (lRet != DONE);
-	
+	printf(".end %s %s %s %s \t\t \t \n", lArg1, lArg2, lArg3, lArg4);
 	getchar();
+	exit(0);
 }
