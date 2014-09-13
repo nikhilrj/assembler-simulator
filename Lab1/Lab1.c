@@ -153,6 +153,9 @@ int add(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
 		exit(4); /*Incorrect number of instructions!*/
 
+	if (isRegister(lArg1) != 1 || isRegister(lArg2) != 1)
+		exit(4); /*Invalid register input*/
+
 	if (isRegister(lArg3) == 1)
 		return (1 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + decodeRegister(lArg3);
 	else
@@ -169,6 +172,9 @@ int and(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
 	if (strcmp(lArg3, "") == 0 || strcmp(lArg4, "") != 0)
 		exit(4); /*Incorrect number of instructions!*/
+
+	if (isRegister(lArg1) != 1 || isRegister(lArg2) != 1)
+		exit(4); /*Invalid register input*/
 
 	if (isRegister(lArg3) == 1)
 		return (5 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + decodeRegister(lArg3);
@@ -192,12 +198,19 @@ int brn(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	{
 		if (strcmp(SymbolList[i], lArg1) == 0)
 		{
-			return (1 << 11) + ((SymbolAddresses[i] - (pc+1)) & 0x1FF);
+			int dist = (SymbolAddresses[i] - (pc + 1));
+			if (dist > 255 || dist < -256)
+				exit(4); /*Label is too far away!*/
+			return (1 << 11) + (dist & 0x1FF);
 		}
 	}
 
 	/*CASE 2: IT IS A NUMBER*/
-	return (1 << 11) + toNum(lArg1);
+	int pcOffset = toNum(lArg1);
+	if (pcOffset > 255 || pcOffset < -256)
+		exit(3); /*Invalid Constant*/
+	return (1 << 11) + (pcOffset & 0x1FF);
+
 }
 int brp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -228,8 +241,14 @@ int halt(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	return 0;
 }
 int jmp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
-{
-	return 0;
+{ 
+	if (strcmp(lArg2, "") != 0)
+		exit(4); /*Wrong number of operands*/
+	
+	if (isRegister(lArg1) == 1)
+		return (12 << 12) + (decodeRegister(lArg1) << 6);
+	else
+		exit(4);
 }
 int jsr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -261,7 +280,11 @@ int not(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int ret(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
-	return 0;
+	if (strcmp(lArg1, "") != 0)
+		exit(4); /*Wrong number of operands*/
+
+	return (12 << 12) + (7 << 6);
+
 }
 int lshf(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {

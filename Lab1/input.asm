@@ -9,4 +9,6 @@ A    LEA R1, Y
 Y    .FILL #263
     .FILL #13
     .FILL #6
+	JMP R0
+	RET
     .END
