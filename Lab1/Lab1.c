@@ -193,11 +193,12 @@ int and(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 }
 int branch(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4, int cc)
 {
+	int i;
 	if (strcmp(lArg2, "") != 0)
 		exit(4); /*Wrong number of operands*/
 	
 	/*CASE 1: IT IS A LABEL*/
-	for (int i = 0; i < symbolCounter; i++)
+	for (i = 0; i < symbolCounter; i++)
 	{
 		if (strcmp(SymbolList[i], lArg1) == 0)
 		{
@@ -208,7 +209,7 @@ int branch(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4, int cc)
 		}
 	}
 
-	if (lArg1[0] != '#' || lArg1 != 'x')
+	if (lArg1[0] != '#' || lArg1[0] != 'x')
 		exit(1); /*Label not found and is not a number, must be invalid label*/
 
 	/*CASE 2: IT IS A NUMBER*/
@@ -262,7 +263,8 @@ int jsr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 		exit(4); /*Wrong number of operands*/
 
 	/*CASE 1: IT IS A LABEL*/
-	for (int i = 0; i < symbolCounter; i++)
+	int i;
+	for (i = 0; i < symbolCounter; i++)
 	{
 		if (strcmp(SymbolList[i], lArg1) == 0)
 		{
@@ -273,7 +275,7 @@ int jsr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 		}
 	}
 
-	if (lArg1[0] != '#' || lArg1 != 'x')
+	if (lArg1[0] != '#' || lArg1[0] != 'x')
 		exit(1); /*Label not found and is not a number, must be invalid label*/
 
 	/*CASE 2: IT IS A NUMBER*/
@@ -325,7 +327,8 @@ int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	int reg = decodeRegister(lArg1);
 
 	/*CASE 1: IT IS A LABEL*/
-	for (int i = 0; i < symbolCounter; i++)
+	int i;
+	for (i = 0; i < symbolCounter; i++)
 	{
 		if (strcmp(SymbolList[i], lArg2) == 0)
 		{
@@ -336,7 +339,7 @@ int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 		}
 	}
 
-	if (lArg2[0] != '#' || lArg2 != 'x')
+	if (lArg2[0] != '#' || lArg2[0] != 'x')
 		exit(1); /*Label not found and is not a number, must be invalid label*/
 
 	/*CASE 2: IT IS A NUMBER*/
@@ -496,15 +499,15 @@ int main(int argc, char* argv[]) {
 
 				if (lLabel[0] >= '0' && lLabel[0] <= '9')
 					exit(4);
-
-				for (int j = 0; j<strlen(lLabel); j++)
+				int j;
+				for (j = 0; j<strlen(lLabel); j++)
 				{
 					if (isalnum(lLabel[j]) == 0)
 						exit(4); /*exit because of non-alphanumeric char*/
 				}
-
+				int n;
 				int labelAlreadyExists = -1;
-				for (int n = 0; n < symbolCounter; n++)
+				for (n = 0; n < symbolCounter; n++)
 				{
 					if (strcmp(lLabel, SymbolList[n]) == 0)
 						labelAlreadyExists = 1;
