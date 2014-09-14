@@ -372,9 +372,9 @@ int lshf(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int amount4 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (amount4 > 7 || amount4 < -8)
-		exit(3); /*too large for 4 bits*/
-	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (amount4&0xf);
+	if (amount4 > 15 || amount4 < 0)
+		exit(3); /*too large for 4 bits or negative*/
+	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (amount4);
 }
 int rshfl(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -383,9 +383,9 @@ int rshfl(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int amount4 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (amount4 > 7 || amount4 < -8)
-		exit(3); /*too large for 4 bits*/
-	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 4) + (amount4&0xf);
+	if (amount4 > 15 || amount4 < 0)
+		exit(3); /*too large for 4 bits or negative*/
+	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 4) + (amount4);
 }
 int rshfa(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -394,9 +394,9 @@ int rshfa(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int amount4 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (amount4 > 7 || amount4 < -8)
-		exit(3); /*too large for 4 bits*/
-	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 5) + (1 << 4) + (amount4&0xf);
+	if (amount4 > 15 || amount4 < 0)
+		exit(3); /*too large for 4 bits or negative*/
+	return (13 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (1 << 5) + (1 << 4) + (amount4);
 }
 int rti(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
@@ -551,7 +551,8 @@ int main(int argc, char* argv[]) {
 				if (strcmp(lOpcode, ".fill") == 0)
 				{
 					if (strcmp(lArg1, "") == 0 || strcmp(lArg2, "") != 0)
-						exit(4);
+						exit(4); /*exit if there is 0 arguments or if there is >2 arguments*/
+					
 					result = toNum(lArg1);
 				}
 			}
