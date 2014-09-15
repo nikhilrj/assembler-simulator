@@ -491,6 +491,10 @@ int main(int argc, char* argv[]) {
 			if (strcmp(".orig", lOpcode) == 0)
 			{
 				orig = toNum(lArg1);
+				if (orig > 65535 || orig < -32768)
+					exit(3); /*Invalid constant*/
+
+				orig = orig & 0xffff;
 			}
 			if (lLabel != NULL && strcmp(lLabel, "") != 0)
 			{
@@ -536,6 +540,9 @@ int main(int argc, char* argv[]) {
 	/*PASS TWO: ASSEMBLE*/
 	lineCounter = -1; /*when lineCounter == 0, it is the first instruction*/
 	lInfile = fopen(iFileName, "r");	/* open the input file */
+	FILE* pOutfile;
+	pOutfile = fopen(oFileName, "w");
+
 	do
 	{
 		int result = 0;
@@ -546,7 +553,7 @@ int main(int argc, char* argv[]) {
 			{
 				if (strcmp(lOpcode, ".orig") == 0)
 				{
-					if (orig % 4 != 0)
+					if (orig % 2 != 0)
 						exit(3); /* address is not word-aligned */
 					result = orig;
 				}
@@ -557,6 +564,11 @@ int main(int argc, char* argv[]) {
 						exit(4); /*exit if there is 0 arguments or if there is >2 arguments*/
 					
 					result = toNum(lArg1);
+
+					if (result > 65535 || result < -32768)
+						exit(3); /*Invalid constant*/
+
+					result = result & 0xffff;
 				}
 			}
 			else
@@ -616,10 +628,11 @@ int main(int argc, char* argv[]) {
 																														else { exit(2); /*congrats! you made it all the way here*/}
 
 			printf("%s %s %s %s %s \t\t %#04x \t %#04x\n", lOpcode, lArg1, lArg2, lArg3, lArg4, lineCounter + orig, result);
+			/*fprintf(pOutfile, "0x%0.4X\n", result);*/
 			lineCounter++;
 		}
 	} while (lRet != DONE);
 	printf(".end %s %s %s %s \t\t \t \n", lArg1, lArg2, lArg3, lArg4);
-	getchar();
+	/*fclose(pOutfile);*/
 	exit(0);
 }
