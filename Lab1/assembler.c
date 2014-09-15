@@ -500,6 +500,8 @@ int main(int argc, char* argv[]) {
 	do
 	{
 		lRet = readAndParse(lInfile, lLine, &lLabel, &lOpcode, &lArg1, &lArg2, &lArg3, &lArg4);
+		if (isOpcode(lLabel) == 1)
+			exit(4);
 		if (lRet != DONE && lRet != EMPTY_LINE)
 		{
 			if (strcmp(lOpcode, ".end") == 0) break; 

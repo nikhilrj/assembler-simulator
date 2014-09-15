@@ -6,7 +6,7 @@ A	LEA R1, Y
 	ADD R1, R1, x-10	;x-10 is the negative of x10
 	BRN A
 	HALT
-Y	.FILL #-1
+Y	.FILL #263
 	.FILL #13
 	.FILL #6
 	.END
