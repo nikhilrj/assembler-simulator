@@ -1,3 +1,10 @@
+/*
+Name 1: Nikhil Joglekar
+Name 2: Kevin Pham
+UTEID 1: nrj328
+UTEID 2: ktp364
+*/
+
 #include <stdio.h> /* standard input/output library */
 #include <stdlib.h> /* Standard C Library */
 #include <string.h> /* String operations library */
@@ -9,7 +16,7 @@
 
 #define MAX_LINE_LENGTH 255
 
-const char* opCodeList[] = { "add", "and", "brn", "brp", "brnp", "br", "brz", "brnz", "brzp", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
+const char* opCodeList[] = { "add", "and", "brn", "brp", "brnp", "br", "brz", "brnz", "brzp", "brnzp", "halt", "jmp", "jsr", "jsrr", "ldb", "ldw", "lea", "nop", "not", "ret", "lshf", "rshfl", "rshfa", "rti", "stb", "stw", "trap", "xor" };
 char* SymbolList[MAX_LINE_LENGTH];
 int SymbolAddresses[MAX_LINE_LENGTH];
 int symbolCounter = 0;
@@ -208,7 +215,7 @@ int branch(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4, int cc)
 			return (cc << 9) + (dist & 0x1FF);
 		}
 	}
-
+	exit(1);
 	if (lArg1[0] != '#' || lArg1[0] != 'x')
 		exit(1); /*Label not found and is not a number, must be invalid label*/
 
@@ -232,6 +239,10 @@ int brnp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	return branch(pc, lArg1, lArg2, lArg3, lArg4, 5);
 }
 int br(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
+{
+	return branch(pc, lArg1, lArg2, lArg3, lArg4, 7);
+}
+int brnzp(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
 	return branch(pc, lArg1, lArg2, lArg3, lArg4, 7);
 }
@@ -274,8 +285,8 @@ int jsr(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 			return (9 << 11) + (dist & 0x7FF);
 		}
 	}
-
-	if (lArg1[0] != '#' || lArg1[0] != 'x')
+	exit(1);
+	if ((lArg1[0] == '#' || lArg1[0] == 'x'))
 		exit(1); /*Label not found and is not a number, must be invalid label*/
 
 	/*CASE 2: IT IS A NUMBER*/
@@ -338,6 +349,7 @@ int lea(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 			return (14 << 12) + (reg << 9) + (dist & 0x1FF);
 		}
 	}
+	exit(1); /*Label not found*/
 
 	if (lArg2[0] != '#' || lArg2[0] != 'x')
 		exit(1); /*Label not found and is not a number, must be invalid label*/
@@ -432,6 +444,10 @@ int stw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 int trap(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 {
 	int num = toNum(lArg1);
+
+	if (lArg1[0] == '#')
+		exit(4);
+
 	if (num < 0 || num > 127)
 		exit(3); /*Invalid constants */
 	return (0xF << 12) + (num & 0xFF);
@@ -519,6 +535,7 @@ int main(int argc, char* argv[]) {
 
 				if (labelAlreadyExists == -1)
 				{
+					if (strlen(lLabel)>20) exit(4); /*Line too long*/
 					SymbolList[symbolCounter] = (char*)malloc(MAX_LINE_LENGTH);/*lLabel*/
 					strcpy(SymbolList[symbolCounter], lLabel);
 					SymbolAddresses[symbolCounter] = orig + lineCounter;
@@ -534,7 +551,8 @@ int main(int argc, char* argv[]) {
 		}
 	} while (lRet != DONE);
 
-	fclose(iFileName);
+	fclose(lInfile);
+
 
 
 	/*PASS TWO: ASSEMBLE*/
@@ -542,6 +560,7 @@ int main(int argc, char* argv[]) {
 	lInfile = fopen(iFileName, "r");	/* open the input file */
 	FILE* pOutfile;
 	pOutfile = fopen(oFileName, "w");
+	if (!pOutfile) exit(5);
 
 	do
 	{
@@ -584,55 +603,64 @@ int main(int argc, char* argv[]) {
 								else
 									if (strcmp(lOpcode, "br") == 0) { result = br(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 									else
-										if (strcmp(lOpcode, "brz") == 0) { result = brz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+										if (strcmp(lOpcode, "brnzp") == 0) { result = br(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 										else
-											if (strcmp(lOpcode, "brnz") == 0) { result = brnz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+											if (strcmp(lOpcode, "brz") == 0) { result = brz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 											else
-												if (strcmp(lOpcode, "brzp") == 0) { result = brzp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+												if (strcmp(lOpcode, "brnz") == 0) { result = brnz(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 												else
-													if (strcmp(lOpcode, "halt") == 0) { result = halt(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+													if (strcmp(lOpcode, "brzp") == 0) { result = brzp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 													else
-														if (strcmp(lOpcode, "jmp") == 0) { result = jmp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+														if (strcmp(lOpcode, "halt") == 0) { result = halt(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 														else
-															if (strcmp(lOpcode, "jsr") == 0) { result = jsr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+															if (strcmp(lOpcode, "jmp") == 0) { result = jmp(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 															else
-																if (strcmp(lOpcode, "jsrr") == 0) { result = jsrr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																if (strcmp(lOpcode, "jsr") == 0) { result = jsr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																else
-																	if (strcmp(lOpcode, "ldb") == 0) { result = ldb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																	if (strcmp(lOpcode, "jsrr") == 0) { result = jsrr(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																	else
-																		if (strcmp(lOpcode, "ldw") == 0) { result = ldw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																		if (strcmp(lOpcode, "ldb") == 0) { result = ldb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																		else
-																			if (strcmp(lOpcode, "lea") == 0) { result = lea(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																			if (strcmp(lOpcode, "ldw") == 0) { result = ldw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																			else
-																				if (strcmp(lOpcode, "nop") == 0) { result = nop(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																				if (strcmp(lOpcode, "lea") == 0) { result = lea(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																				else
-																					if (strcmp(lOpcode, "not") == 0) { result = not(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																					if (strcmp(lOpcode, "nop") == 0) { result = nop(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																					else
-																						if (strcmp(lOpcode, "ret") == 0) { result = ret(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																						if (strcmp(lOpcode, "not") == 0) { result = not(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																						else
-																							if (strcmp(lOpcode, "lshf") == 0) { result = lshf(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																							if (strcmp(lOpcode, "ret") == 0) { result = ret(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																							else
-																								if (strcmp(lOpcode, "rshfl") == 0) { result = rshfl(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																								if (strcmp(lOpcode, "lshf") == 0) { result = lshf(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																								else
-																									if (strcmp(lOpcode, "rshfa") == 0) { result = rshfa(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																									if (strcmp(lOpcode, "rshfl") == 0) { result = rshfl(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																									else
-																										if (strcmp(lOpcode, "rti") == 0) { result = rti(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																										if (strcmp(lOpcode, "rshfa") == 0) { result = rshfa(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																										else
-																											if (strcmp(lOpcode, "stb") == 0) { result = stb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																											if (strcmp(lOpcode, "rti") == 0) { result = rti(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																											else
-																												if (strcmp(lOpcode, "stw") == 0) { result = stw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																												if (strcmp(lOpcode, "stb") == 0) { result = stb(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																												else
-																													if (strcmp(lOpcode, "trap") == 0) { result = trap(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																													if (strcmp(lOpcode, "stw") == 0) { result = stw(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
 																													else
-																														if (strcmp(lOpcode, "xor") == 0) { result = xor(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
-																														else { exit(2); /*congrats! you made it all the way here*/}
+																														if (strcmp(lOpcode, "trap") == 0) { result = trap(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																														else
+																															if (strcmp(lOpcode, "xor") == 0) { result = xor(orig + lineCounter, lArg1, lArg2, lArg3, lArg4); }
+																															else { exit(2); /*congrats! you made it all the way here*/ }
 
-			printf("%s %s %s %s %s \t\t %#04x \t %#04x\n", lOpcode, lArg1, lArg2, lArg3, lArg4, lineCounter + orig, result);
-			/*fprintf(pOutfile, "0x%0.4X\n", result);*/
+			printf("%s %s %s %s %s \t\t %#04x \t0x%0.4X\n", lOpcode, lArg1, lArg2, lArg3, lArg4, lineCounter + orig, result);
+			fprintf(pOutfile, "0x%0.4X\n", result);
 			lineCounter++;
 		}
 	} while (lRet != DONE);
 	printf(".end %s %s %s %s \t\t \t \n", lArg1, lArg2, lArg3, lArg4);
-	/*fclose(pOutfile);*/
+	int j;
+	for (j = 0; j < symbolCounter; j++)
+	{
+		free(SymbolList[j]);
+	}
+
+	fclose(lInfile);
+	fclose(pOutfile);
 	exit(0);
 }

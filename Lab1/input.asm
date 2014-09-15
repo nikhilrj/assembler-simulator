@@ -1,12 +1,37 @@
-	.ORIG #4096
-A	LEA R1, Y
-	LDW R1, R1, #0
-	LDW R1, R1, #0
+	.ORIG x3000
 	ADD R1, R1, R1
-	ADD R1, R1, x-10	;x-10 is the negative of x10
-	BRN A
+	ADD R1, R1, #5
+	AND R1, R1, R1
+	AND R1, R1, #5
+	BR A
+	BRnzp A
+	BRn A
+	BRz A
+	BRp A
+	BRnz A
+	BRnp A
+
+	ADD r0, R9, R3
+
+	BRzp A
+	JMP R1
+	JSR A
+	JSRR R1
+	LDB R1,R1,#5
+	LDW R1,R1,#5
+	LEA R1,A
+	NOT R1,R1
+	RET
+	RTI
+	LSHF R1,R1,#5
+	RSHFL R1,R1,#5
+	RSHFA R1,R1,#5
+	STB R1,R1,#5
+	STW R1,R1,#5
+	TRAP x25
+	XOR R1,R1,R1
+	XOR R1,R1,#5
 	HALT
-Y	.FILL #-1
-	.FILL #13
-	.FILL #6
+	NOP
+A	.FILL X4000
 	.END
