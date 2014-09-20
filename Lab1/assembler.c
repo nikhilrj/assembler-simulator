@@ -312,7 +312,7 @@ int ldb(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int boffset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (boffset6 > ((2 << 5) - 1) || boffset6 < ((2 << 5) * -1))
+	if (boffset6 > ((1 << 5) - 1) || boffset6 < ((1 << 5) * -1))
 		exit(3); /*too large for 4 bits*/
 	return (2 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (boffset6 & 0x3f);
 }
@@ -323,7 +323,7 @@ int ldw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int boffset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (boffset6 > ((2 << 5) - 1) || boffset6 < ((2 << 5) * -1))
+	if (boffset6 > ((1 << 5) - 1) || boffset6 < ((1 << 5) * -1))
 		exit(3); /*too large for 4 bits*/
 	return (6 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (boffset6 & 0x3f);
 }
@@ -426,7 +426,7 @@ int stb(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int boffset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (boffset6 > ((2 << 5) - 1) || boffset6 < ((2 << 5) * -1))
+	if (boffset6 > ((1 << 5) - 1) || boffset6 < ((1 << 5) * -1))
 		exit(3); /*too large for 4 bits*/
 	return (3 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (boffset6&0x3f);
 }
@@ -437,7 +437,7 @@ int stw(int pc, char* lArg1, char* lArg2, char* lArg3, char* lArg4)
 	if (isRegister(lArg1) == -1 || isRegister(lArg2) == -1)
 		exit(4); /*invalid register or unexpected operand*/
 	int offset6 = toNum(lArg3); /* exits with 4 inside if lArg3 isn't already dec or hex number */
-	if (offset6 > ((2 << 5) - 1) || offset6 < ((2 << 5) * -1))
+	if (offset6 > ((1 << 5) - 1) || offset6 < ((1 << 5) * -1))
 		exit(3); /*too large for 4 bits*/
 	return (7 << 12) + (decodeRegister(lArg1) << 9) + (decodeRegister(lArg2) << 6) + (offset6 & 0x3f);
 }
