@@ -373,8 +373,8 @@ int main(int argc, char *argv[]) {
   initialize(argv[1], argc - 1);
 
   if ( (dumpsim_file = fopen( "dumpsim", "w" )) == NULL ) {
-    printf("Error: Can't open dumpsim file\n");
-    exit(-1);
+    printf("Error: Can't open dumpsim file\n");    exit(-1);
+
   }
 
   while (1)
@@ -400,6 +400,48 @@ int main(int argc, char *argv[]) {
 
 /***************************************************************/
 
+void BR(int instruction){
+
+}
+void ADD(int instruction){
+
+}
+void LDB(int instruction){
+
+}
+void STB(int instruction){
+
+}
+void JSR(int instruction){
+
+}
+void AND(int instruction){
+
+}
+void LDW(int instruction){
+
+}
+void STW(int instruction){
+
+}
+void RTI(int instruction){
+
+}
+void XOR(int instruction){
+
+}
+void JMP(int instruction){
+
+}
+void SHF(int instruction){
+
+}
+void LEA(int instruction){
+
+}
+void TRAP(int instruction){
+
+}
 
 
 void process_instruction(){
@@ -411,5 +453,32 @@ void process_instruction(){
    *       -Execute
    *       -Update NEXT_LATCHES
    */     
+
+	int current_instruction = (MEMORY[CURRENT_LATCHES.PC>>1][1]<<8) + (MEMORY[CURRENT_LATCHES.PC>>1][0]);
+	printf("%d 0x%0.4X 0x%0.4X\n", CURRENT_LATCHES.PC, (current_instruction & 0x0000f000) >> 12, current_instruction);
+
+	switch ((current_instruction & 0x0000f000) >> 12){
+
+	case 0: BR(current_instruction); break;
+	case 1: ADD(current_instruction); break;
+	case 2: LDB(current_instruction); break;
+	case 3: STB(current_instruction); break;
+	case 4: JSR(current_instruction); break;
+	case 5: AND(current_instruction); break;
+	case 6: LDW(current_instruction); break;
+	case 7: STW(current_instruction); break;
+	case 8: RTI(current_instruction); break;
+	case 9: XOR(current_instruction); break;
+	case 10: break;
+	case 11: break;
+	case 12: JMP(current_instruction); break;
+	case 13: SHF(current_instruction); break;
+	case 14: LEA(current_instruction); break;
+	case 15: TRAP(current_instruction); break;
+	}
+
+	NEXT_LATCHES.PC = CURRENT_LATCHES.PC + 2;
+
+
 
 }
