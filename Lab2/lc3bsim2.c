@@ -440,11 +440,21 @@ void ADD(int instruction){
 }
 
 void LDB(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
+	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = MEMORY[location >> 1][0];
 
+	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	incrementPC();
 }
 
 void STB(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
+	MEMORY[location >> 1][0] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x00FF;
 
+	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	incrementPC();
 }
 
 void JSR(int instruction){
@@ -469,14 +479,24 @@ void AND(int instruction){
 }
 
 void LDW(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + ((0x003F & instruction) << 26);
+	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = MEMORY[location >> 1][0] + (MEMORY[location >> 1][1] << 8);
 
+	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	incrementPC();
 }
+
 void STW(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + ((0x003F & instruction) << 26);
+	MEMORY[location >> 1][0] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x00FF;
+	MEMORY[location >> 1][1] = ((NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x0000FF00) >> 8);
 
+	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	incrementPC();
 }
-void RTI(int instruction){
 
-}
 void XOR(int instruction){
 	if ((instruction & 0x0020) == 0) {
 		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] ^ CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
@@ -488,15 +508,26 @@ void XOR(int instruction){
 	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
 	incrementPC();
 }
+
 void JMP(int instruction){
-	NEXT_LATCHES.PC = Low16Bits(CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]);
+	NEXT_LATCHES.PC = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] & 0x0000FFFF;
 }
+
 void SHF(int instruction){
+	if ((instruction & 0x0020) == 0) {
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] << (((0x000F & instruction) << 28) >> 28);
+	}
 
+	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	incrementPC();
 }
+
 void LEA(int instruction){
-
+	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = Low16bits((CURRENT_LATCHES.PC + 2) + ((((instruction & 0x1FF) << 23) >> 23) << 1));
+	incrementPC();
 }
+
 void TRAP(int instruction){
 
 }
@@ -525,7 +556,7 @@ void process_instruction(){
 	case 5: AND(current_instruction); break;
 	case 6: LDW(current_instruction); break;
 	case 7: STW(current_instruction); break;
-	case 8: RTI(current_instruction); break;
+	case 8: break;
 	case 9: XOR(current_instruction); break;
 	case 10: break;
 	case 11: break;

@@ -1,4 +1,7 @@
         .ORIG x3000
+		LEA R5, SHIT
+		LDB R6, R5, #0
+		LDW R7, R5, #0
 		AND R2, R2, #0
 		ADD R2, R2, #1
 MAD		BRp LABEL
@@ -10,6 +13,8 @@ MAD		BRp LABEL
 		ADD R1, R1, #1
 LABEL	ADD R2, R2, R2
 		BR MAD
+		HALT
+SHIT	.FILL x1234
 		.END
 
 
