@@ -425,6 +425,8 @@ void incrementPC(){
 void BR(int instruction){
 	if (((((instruction & 0x0800) >> 11) & CURRENT_LATCHES.N) + (((instruction & 0x0400) >> 10) & CURRENT_LATCHES.Z) + (((instruction & 0x0200) >> 9) & CURRENT_LATCHES.P)) > 0)
 		NEXT_LATCHES.PC = Low16bits((CURRENT_LATCHES.PC+2) + ((((instruction & 0x1FF) << 23) >> 23)<<1));
+	else
+		incrementPC();
 }
 
 void ADD(int instruction){
@@ -458,12 +460,14 @@ void STB(int instruction){
 }
 
 void JSR(int instruction){
+	int temp = Low16bits(CURRENT_LATCHES.PC + 2);
 	if (instruction & 0x0800 == 0){
 		NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]);
 	}
 	else {
 		NEXT_LATCHES.PC = Low16bits((CURRENT_LATCHES.PC + 2) + ((((instruction & 0x7FF) << 21) >> 21) << 1));
 	}
+	NEXT_LATCHES.REGS[7] = temp;
 }
 
 void AND(int instruction){
@@ -514,9 +518,33 @@ void JMP(int instruction){
 }
 
 void SHF(int instruction){
+	/*
 	if ((instruction & 0x0020) == 0) {
 		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] << (((0x000F & instruction) << 28) >> 28);
+	}*/
+	/* values for SHF are non-negative */
+	if ((instruction & 0x0030) >> 4 == 0)
+	{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] << (((0x000F & instruction) << 28) >> 28);
 	}
+	else if ((instruction & 0x0030) >> 4 == 1)
+	{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] >> (((0x000F & instruction) << 28) >> 28);
+	}
+	else if ((instruction & 0x0030) >> 4 == 3)
+	{
+		int number = (((0x000F & instruction) << 28) >> 28);
+		if (number > 0)
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] >> number;
+		int mask = 0x7FFFFFFF;
+		int k;
+		for (k = 0; k < number-1; k++)
+		{
+			mask = mask >> 1;
+		}
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & mask;
+	}
+
 
 	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
 	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
@@ -529,7 +557,9 @@ void LEA(int instruction){
 }
 
 void TRAP(int instruction){
-
+	NEXT_LATCHES.REGS[7] = Low16bits((CURRENT_LATCHES.PC + 2));
+	int location = (instruction & 0x000000FF) << 1;
+	NEXT_LATCHES.PC = Low16bits(((MEMORY[location][1]) << 8) + (MEMORY[location][0]));
 }
 
 
