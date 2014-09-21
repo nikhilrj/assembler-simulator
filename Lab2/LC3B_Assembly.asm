@@ -5,5 +5,5 @@
 	RSHFA R1, R1, #5
 	RSHFL R1, R1, #2
 	HALT
-A 	.FILL x0
+A 	.FILL 0x00
 	.END
