@@ -1,4 +1,19 @@
         .ORIG x3000
+		AND R2, R2, #0
+		ADD R2, R2, #1
+MAD		BRp LABEL
+		ADD R1, R1, #1
+		ADD R1, R1, #1
+		ADD R1, R1, #1
+		ADD R1, R1, #1
+		ADD R1, R1, #1
+		ADD R1, R1, #1
+LABEL	ADD R2, R2, R2
+		BR MAD
+		.END
+
+
+
 	AND R5, R5, #0
 	AND R3, R3, #0
 	ADD R3, R3, #8

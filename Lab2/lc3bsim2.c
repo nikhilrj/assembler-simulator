@@ -423,8 +423,10 @@ void incrementPC(){
 
 
 void BR(int instruction){
-
+	if (((((instruction & 0x0800) >> 11) & CURRENT_LATCHES.N) + (((instruction & 0x0400) >> 10) & CURRENT_LATCHES.Z) + (((instruction & 0x0200) >> 9) & CURRENT_LATCHES.P)) > 0)
+		NEXT_LATCHES.PC = Low16bits((CURRENT_LATCHES.PC+2) + ((((instruction & 0x1FF) << 23) >> 23)<<1));
 }
+
 void ADD(int instruction){
 	if ((instruction & 0x0020) == 0) {
 		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
@@ -436,15 +438,24 @@ void ADD(int instruction){
 	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
 	incrementPC();
 }
+
 void LDB(int instruction){
 
 }
+
 void STB(int instruction){
 
 }
-void JSR(int instruction){
 
+void JSR(int instruction){
+	if (instruction & 0x0800 == 0){
+		NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]);
+	}
+	else {
+		NEXT_LATCHES.PC = Low16bits((CURRENT_LATCHES.PC + 2) + ((((instruction & 0x7FF) << 21) >> 21) << 1));
+	}
 }
+
 void AND(int instruction){
 	if ((instruction & 0x0020) == 0) {
 		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] & CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
@@ -456,6 +467,7 @@ void AND(int instruction){
 	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
 	incrementPC();
 }
+
 void LDW(int instruction){
 
 }
@@ -466,10 +478,18 @@ void RTI(int instruction){
 
 }
 void XOR(int instruction){
-
+	if ((instruction & 0x0020) == 0) {
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] ^ CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
+	}
+	else{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] ^ (((0x001F & instruction) << 27) >> 27);
+	}
+	Low16bits(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	setCC(NEXT_LATCHES.REGS[parseRegister(instruction, 9)]);
+	incrementPC();
 }
 void JMP(int instruction){
-
+	NEXT_LATCHES.PC = Low16Bits(CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]);
 }
 void SHF(int instruction){
 
