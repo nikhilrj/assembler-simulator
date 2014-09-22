@@ -502,7 +502,7 @@ void AND(int instruction){
 }
 
 void LDW(int instruction){
-	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + ((0x003F & instruction) << 26);
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
 	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = MEMORY[location >> 1][0] + (MEMORY[location >> 1][1] << 8);
 
 
@@ -511,7 +511,7 @@ void LDW(int instruction){
 }
 
 void STW(int instruction){
-	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + ((0x003F & instruction) << 26);
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
 	MEMORY[location >> 1][0] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x00FF;
 	MEMORY[location >> 1][1] = ((NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x0000FF00) >> 8);
 
@@ -521,7 +521,7 @@ void STW(int instruction){
 
 void XOR(int instruction){
 	if ((instruction & 0x0020) == 0) {
-		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] ^ CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = (CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]) ^ (CURRENT_LATCHES.REGS[parseRegister(instruction, 0)]);
 	}
 	else{
 		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] ^ (((0x001F & instruction) << 27) >> 27);

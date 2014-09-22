@@ -1,9 +1,24 @@
 	.ORIG x3000
-	AND R1, R1, #0
-	ADD R1, R1, #-7
-	LSHF R1, R1, #4
-	RSHFA R1, R1, #5
-	RSHFL R1, R1, #2
+	LEA R0, A
+	LDW R0, R0, #-2
+	ADD R1, R1, #-5
+	ADD R2, R2, #7
+	ADD R3, R3, #6
+	AND R3, R2, R3
+	BRnzp E
+C	BRp FX
+D	BR C
+E   JMP R0
+FX	LEA R4, G
+	LEA R5, G
+	LDB R4, R4, #-2
+	LDW R5, R5, #-2
+	STB R3, R4, #0
+	STW R3, R5, #0
+	XOR R1,R1
 	HALT
-A 	.FILL 0x00
+B	.FILL x3010
+A 	.FILL x300E
+F   .FILL x40F3
+G	.FILL x0000
 	.END
