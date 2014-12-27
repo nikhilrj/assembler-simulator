@@ -373,8 +373,8 @@ int main(int argc, char *argv[]) {
   initialize(argv[1], argc - 1);
 
   if ( (dumpsim_file = fopen( "dumpsim", "w" )) == NULL ) {
-    printf("Error: Can't open dumpsim file\n");
-    exit(-1);
+    printf("Error: Can't open dumpsim file\n");    exit(-1);
+
   }
 
   while (1)
@@ -402,6 +402,203 @@ int main(int argc, char *argv[]) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int parseRegister(int instruction, int position){
+	return (((0x07 << position) & instruction) >> position);
+}
+
+void setCC(int regnum) {
+	int reg = NEXT_LATCHES.REGS[regnum];
+
+	NEXT_LATCHES.Z = 0;
+	NEXT_LATCHES.N = 0;
+	NEXT_LATCHES.P = 0;
+
+	if (reg == 0)
+		NEXT_LATCHES.Z = 1;
+	else if (reg > 0)
+		NEXT_LATCHES.P = 1;
+	else
+		NEXT_LATCHES.N = 1;
+
+	NEXT_LATCHES.REGS[regnum] &= 0x0000FFFF;
+}
+
+void incrementPC(){
+	NEXT_LATCHES.PC = CURRENT_LATCHES.PC + 2;
+}
+
+
+void BR(int instruction){
+	if (((((instruction & 0x0800) >> 11) & CURRENT_LATCHES.N) + (((instruction & 0x0400) >> 10) & CURRENT_LATCHES.Z) + (((instruction & 0x0200) >> 9) & CURRENT_LATCHES.P)) > 0)
+		NEXT_LATCHES.PC = Low16bits((CURRENT_LATCHES.PC+2) + ((((instruction & 0x1FF) << 23) >> 23)<<1));
+	else
+		incrementPC();
+}
+
+void ADD(int instruction){
+	if ((instruction & 0x0020) == 0) {
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
+	}
+	else{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x001F & instruction) << 27) >> 27);
+	}
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void LDB(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
+	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = MEMORY[location >> 1][location%2];
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void STB(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
+	MEMORY[location >> 1][location%2] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x00FF;
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void JSR(int instruction){
+	int temp = Low16bits(CURRENT_LATCHES.PC + 2);
+	if (instruction & 0x0800 == 0){
+		NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]);
+	}
+	else {
+		NEXT_LATCHES.PC = Low16bits((CURRENT_LATCHES.PC + 2) + ((((instruction & 0x7FF) << 21) >> 21) << 1));
+	}
+	NEXT_LATCHES.REGS[7] = temp;
+}
+
+void AND(int instruction){
+	if ((instruction & 0x0020) == 0) {
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] & CURRENT_LATCHES.REGS[parseRegister(instruction, 0)];
+	}
+	else{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] & (((0x001F & instruction) << 27) >> 27);
+	}
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void LDW(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
+	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = MEMORY[location >> 1][0] + (MEMORY[location >> 1][1] << 8);
+
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void STW(int instruction){
+	int location = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] + (((0x003F & instruction) << 26) >> 26);
+	MEMORY[location >> 1][0] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x00FF;
+	MEMORY[location >> 1][1] = ((NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & 0x0000FF00) >> 8);
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void XOR(int instruction){
+	if ((instruction & 0x0020) == 0) {
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = (CURRENT_LATCHES.REGS[parseRegister(instruction, 6)]) ^ (CURRENT_LATCHES.REGS[parseRegister(instruction, 0)]);
+	}
+	else{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] ^ (((0x001F & instruction) << 27) >> 27);
+	}
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void JMP(int instruction){
+	NEXT_LATCHES.PC = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] & 0x0000FFFF;
+}
+
+void SHF(int instruction){
+	/*
+	if ((instruction & 0x0020) == 0) {
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] << (((0x000F & instruction) << 28) >> 28);
+	}*/
+	/* values for SHF are non-negative */
+	if ((instruction & 0x0030) >> 4 == 0)
+	{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] << (0x000F & instruction);
+	}
+	else if ((instruction & 0x0030) >> 4 == 1)
+	{
+		NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] >> (0x000F & instruction);
+	}
+	else if ((instruction & 0x0030) >> 4 == 3)
+	{
+		if ((0x000F) & instruction == 0)
+		{
+			NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)];
+		}
+		else
+		{
+			int number = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)];
+			if ((number & 0x8000) >> 15 == 0)
+			{
+				NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] >> (0x000F & instruction);
+				int mask = 0x7FFFFFFF;
+				int k;
+				for (k = 0; k < (0x000F & instruction) - 1; k++)
+				{
+					mask = mask >> 1;
+				}
+				NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] & mask;
+			}
+			else
+			{
+				NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = CURRENT_LATCHES.REGS[parseRegister(instruction, 6)] >> (0x000F & instruction);
+				int mask = 0xFFFF8000;
+				int k;
+				for (k = 0; k < (0x000F & instruction) - 1; k++)
+				{
+					mask = mask >> 1;
+				}
+				NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = NEXT_LATCHES.REGS[parseRegister(instruction, 9)] | mask;
+			}
+		}
+	}
+
+	setCC(parseRegister(instruction, 9));
+	incrementPC();
+}
+
+void LEA(int instruction){
+	NEXT_LATCHES.REGS[parseRegister(instruction, 9)] = Low16bits((CURRENT_LATCHES.PC + 2) + ((((instruction & 0x1FF) << 23) >> 23) << 1));
+	incrementPC();
+}
+
+void TRAP(int instruction){
+	NEXT_LATCHES.REGS[7] = Low16bits((CURRENT_LATCHES.PC + 2));
+	int location = (instruction & 0x000000FF) << 1;
+	NEXT_LATCHES.PC = Low16bits(((MEMORY[location][1]) << 8) + (MEMORY[location][0]));
+}
+
+
 void process_instruction(){
   /*  function: process_instruction
    *  
@@ -412,4 +609,26 @@ void process_instruction(){
    *       -Update NEXT_LATCHES
    */     
 
+	int current_instruction = (MEMORY[CURRENT_LATCHES.PC>>1][1]<<8) + (MEMORY[CURRENT_LATCHES.PC>>1][0]);
+	printf("%d 0x%0.4X 0x%0.4X\n", CURRENT_LATCHES.PC, (current_instruction & 0x0000f000) >> 12, current_instruction);
+
+	switch ((current_instruction & 0x0000f000) >> 12){
+
+	case 0: BR(current_instruction); break;
+	case 1: ADD(current_instruction); break;
+	case 2: LDB(current_instruction); break;
+	case 3: STB(current_instruction); break;
+	case 4: JSR(current_instruction); break;
+	case 5: AND(current_instruction); break;
+	case 6: LDW(current_instruction); break;
+	case 7: STW(current_instruction); break;
+	case 8: break;
+	case 9: XOR(current_instruction); break;
+	case 10: break;
+	case 11: break;
+	case 12: JMP(current_instruction); break;
+	case 13: SHF(current_instruction); break;
+	case 14: LEA(current_instruction); break;
+	case 15: TRAP(current_instruction); break;
+	}
 }
